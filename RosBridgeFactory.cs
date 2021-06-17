@@ -7,6 +7,8 @@
 
 using System;
 using Simulator.Bridge.Data;
+using Simulator.Bridge.Data.Apollo;
+using Simulator.Bridge.Data.Apollo.Drivers;
 // NOTE: DO NOT add using "Ros.Ros", "Ros.Apollo" or "Ros.Lgsvl" namespaces here to avoid
 // NOTE: confusion between types. Keep them fully qualified in this file.
 
@@ -137,16 +139,16 @@ namespace Simulator.Bridge.Ros
         {
             base.Register(plugin);
 
-            RegPublisher<DetectedRadarObjectData, Apollo.Drivers.ContiRadar>(plugin, Conversions.ConvertFrom);
-            RegPublisher<CanBusData, Apollo.ChassisMsg>(plugin, Conversions.ConvertFrom);
-            RegPublisher<GpsData, Apollo.GnssBestPose>(plugin, Conversions.ConvertFrom);
-            RegPublisher<GpsOdometryData, Apollo.Gps>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<ImuData, Apollo.Imu>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<CorrectedImuData, Apollo.CorrectedImu>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<Detected3DObjectData, Apollo.Perception.PerceptionObstacles>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<SignalDataArray, Apollo.Perception.TrafficLightDetection>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<DetectedRadarObjectData, ContiRadar>(plugin, Conversions.ConvertFrom);
+            RegPublisher<CanBusData, ChassisMsg>(plugin, Conversions.ConvertFrom);
+            RegPublisher<GpsData, GnssBestPose>(plugin, Conversions.ConvertFrom);
+            RegPublisher<GpsOdometryData, Gps>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<ImuData, Imu>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<CorrectedImuData, CorrectedImu>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<Detected3DObjectData, Data.Apollo.Perception.PerceptionObstacles>(plugin, Conversions.ApolloConvertFrom);
+            RegPublisher<SignalDataArray, Data.Apollo.Perception.TrafficLightDetection>(plugin, Conversions.ApolloConvertFrom);
 
-            RegSubscriber<VehicleControlData, Apollo.control_command>(plugin, Conversions.ConvertTo);
+            RegSubscriber<VehicleControlData, control_command>(plugin, Conversions.ConvertTo);
         }
     }
 }
