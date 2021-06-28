@@ -7,18 +7,23 @@
 
 using System;
 using Simulator.Bridge.Data;
-using Simulator.Bridge.Data.Apollo;
-using Simulator.Bridge.Data.Apollo.Drivers;
 // NOTE: DO NOT add using "Ros.Ros", "Ros.Apollo" or "Ros.Lgsvl" namespaces here to avoid
 // NOTE: confusion between types. Keep them fully qualified in this file.
 
 namespace Simulator.Bridge.Ros
 {
-    public abstract class RosBridgeFactoryBase : IBridgeFactory
+
+    [BridgeName("ROS")]
+    public class RosBridgeFactory : IBridgeFactory
     {
         public IBridgeInstance CreateInstance() => new ROS();
 
-        public virtual void Register(IBridgePlugin plugin)
+        public RosBridgeFactory()
+        {
+
+        }
+
+        public void Register(IBridgePlugin plugin)
         {
             // point cloud is special, as we use special writer for performance reasons
             plugin.AddType<PointCloudData>(RosUtils.GetMessageType<Ros.PointCloud2>());
@@ -49,6 +54,29 @@ namespace Simulator.Bridge.Ros
 
             // std_srvs/Trigger
             RegService<EmptySrv, Ros.Empty, TriggerSrv, Ros.Trigger>(plugin, Conversions.ConvertTo, Conversions.ConvertFrom);
+
+            // gps data is special, because it actually sends two Ros.Sentence messages for each data point from simulator
+            plugin.AddType<GpsData>(RosUtils.GetMessageType<Ros.Sentence>());
+            plugin.AddPublisherCreator(
+                (instance, topic) =>
+                {
+                    var rosInstance = instance as ROS;
+                    rosInstance.AddPublisher<Ros.Sentence>(topic);
+                    var writer = new RosNmeaWriter(rosInstance, topic);
+                    return new Publisher<GpsData>((data, completed) => writer.Write(data, completed));
+                }
+            );
+
+            RegPublisher<CanBusData, Lgsvl.CanBusDataRos>(plugin, Conversions.RosConvertFrom);
+            RegPublisher<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(plugin, Conversions.RosConvertFrom);
+            RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Conversions.ConvertFrom);
+            RegPublisher<ImuData, Ros.Imu>(plugin, Conversions.ConvertFrom);
+            RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);
+            RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Conversions.ConvertFrom);
+            RegPublisher<UltrasonicData, Lgsvl.Ultrasonic>(plugin, Conversions.ConvertFrom);
+            RegPublisher<VehicleOdometryData, Lgsvl.VehicleOdometry>(plugin, Conversions.ConvertFrom);
+
+            RegSubscriber<VehicleControlData, Lgsvl.VehicleControlDataRos>(plugin, Conversions.ConvertTo);
         }
 
         public void RegPublisher<DataType, BridgeType>(IBridgePlugin plugin, Func<DataType, BridgeType> converter)
@@ -97,58 +125,6 @@ namespace Simulator.Bridge.Ros
                     );
                 }
             );
-        }
-    }
-
-    [BridgeName("ROS")]
-    public class RosBridgeFactory : RosBridgeFactoryBase
-    {
-        public override void Register(IBridgePlugin plugin)
-        {
-            base.Register(plugin);
-
-            // gps data is special, because it actually sends two Ros.Sentence messages for each data point from simulator
-            plugin.AddType<GpsData>(RosUtils.GetMessageType<Ros.Sentence>());
-            plugin.AddPublisherCreator(
-                (instance, topic) =>
-                {
-                    var rosInstance = instance as ROS;
-                    rosInstance.AddPublisher<Ros.Sentence>(topic);
-                    var writer = new RosNmeaWriter(rosInstance, topic);
-                    return new Publisher<GpsData>((data, completed) => writer.Write(data, completed));
-                }
-            );
-
-            RegPublisher<CanBusData, Lgsvl.CanBusDataRos>(plugin, Conversions.RosConvertFrom);
-            RegPublisher<DetectedRadarObjectData, Lgsvl.DetectedRadarObjectArray>(plugin, Conversions.RosConvertFrom);
-            RegPublisher<GpsOdometryData, Ros.Odometry>(plugin, Conversions.ConvertFrom);
-            RegPublisher<ImuData, Ros.Imu>(plugin, Conversions.ConvertFrom);
-            RegPublisher<Detected3DObjectData, Lgsvl.Detection3DArray>(plugin, Conversions.ConvertFrom);
-            RegPublisher<SignalDataArray, Lgsvl.SignalArray>(plugin, Conversions.ConvertFrom);
-            RegPublisher<UltrasonicData, Lgsvl.Ultrasonic>(plugin, Conversions.ConvertFrom);
-            RegPublisher<VehicleOdometryData, Lgsvl.VehicleOdometry>(plugin, Conversions.ConvertFrom);
-
-            RegSubscriber<VehicleControlData, Lgsvl.VehicleControlDataRos>(plugin, Conversions.ConvertTo);
-        }
-    }
-
-    [BridgeName("ROS Apollo")]
-    public class RosApolloBridgeFactory : RosBridgeFactoryBase
-    {
-        public override void Register(IBridgePlugin plugin)
-        {
-            base.Register(plugin);
-
-            RegPublisher<DetectedRadarObjectData, ContiRadar>(plugin, Conversions.ConvertFrom);
-            RegPublisher<CanBusData, ChassisMsg>(plugin, Conversions.ConvertFrom);
-            RegPublisher<GpsData, GnssBestPose>(plugin, Conversions.ConvertFrom);
-            RegPublisher<GpsOdometryData, Gps>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<ImuData, Imu>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<CorrectedImuData, CorrectedImu>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<Detected3DObjectData, Data.Apollo.Perception.PerceptionObstacles>(plugin, Conversions.ApolloConvertFrom);
-            RegPublisher<SignalDataArray, Data.Apollo.Perception.TrafficLightDetection>(plugin, Conversions.ApolloConvertFrom);
-
-            RegSubscriber<VehicleControlData, control_command>(plugin, Conversions.ConvertTo);
         }
     }
 }
