@@ -1,5 +1,5 @@
 {
-  "id": "f0ee0844-df34-49a0-9a92-ec8fcfd44930",
+  "id": "a4af0edd-85ed-4edf-8064-f3c054c26798",
   "name": "ROS",
   "accessType": "public",
   "description": "This bridge allows connecting to ROS based AV stacks. (like Autoware). ROS Bridge requires IP address and port number while setting up Simulation Configuration.",
