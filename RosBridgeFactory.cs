@@ -13,7 +13,7 @@ using Simulator.Bridge.Data;
 namespace Simulator.Bridge.Ros
 {
 
-    [BridgeName("ROS")]
+    [BridgeName("ROS", "ROS")]
     public class RosBridgeFactory : IBridgeFactory
     {
         public IBridgeInstance CreateInstance() => new ROS();
