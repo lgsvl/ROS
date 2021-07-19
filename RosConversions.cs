@@ -41,6 +41,57 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Ros.LaserScan ConvertFrom(LaserScanData data)
+        {
+            var count = data.Points.Length;
+
+            if (data.RangesCache == null || data.RangesCache.Length != count)
+                data.RangesCache = new float[count];
+
+            if (data.IntensitiesCache == null || data.IntensitiesCache.Length != count)
+                data.IntensitiesCache = new float[count];
+
+            for (var i = 0; i < count; ++i)
+            {
+                var point = data.Points[i];
+
+                var pos = new UnityEngine.Vector3(point.x, point.y, point.z);
+                var intensity = point.w * 255f;
+
+                pos = data.Transform.MultiplyPoint3x4(pos);
+                var distance = pos.magnitude;
+                if (distance < data.RangeMin || distance > data.RangeMax)
+                {
+                    distance = float.PositiveInfinity; // TODO: verify how LaserScan filters out points
+                    intensity = 0;
+                }
+
+                var iOut = count - 1 - i;
+                data.RangesCache[iOut] = distance;
+                data.IntensitiesCache[iOut] = intensity;
+            }
+
+            var msg = new Ros.LaserScan()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                angle_min = data.MinAngle,
+                angle_max = data.MaxAngle,
+                angle_increment = data.AngleStep,
+                time_increment = data.TimeIncrement,
+                scan_time = data.ScanTime,
+                range_min = data.RangeMin,
+                range_max = data.RangeMax,
+                ranges = data.RangesCache,
+                intensities = data.IntensitiesCache
+            };
+
+            return msg;
+        }
+
         public static Ros.CameraInfo ConvertFrom(CameraInfoData data)
         {
             return new Ros.CameraInfo()
