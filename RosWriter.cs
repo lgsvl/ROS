@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Globalization;
 using System.Text;
 using Simulator.Bridge.Data;
 using UnityEngine;
@@ -195,7 +196,7 @@ namespace Simulator.Bridge.Ros
                 10, // sattelites tracked
                 Accuracy,
                 message.Altitude,
-                Height);
+                Height, CultureInfo.InvariantCulture);
 
             var angles = message.Orientation.eulerAngles;
             float roll = -angles.z;
@@ -206,7 +207,7 @@ namespace Simulator.Bridge.Ros
                 utc,
                 roll,
                 pitch,
-                yaw);
+                yaw, CultureInfo.InvariantCulture);
 
             // http://www.plaisance-pratique.com/IMG/pdf/NMEA0183-2.pdf
             // 5.2.3 Checksum Field
