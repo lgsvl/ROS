@@ -188,26 +188,26 @@ namespace Simulator.Bridge.Ros
             var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(message.Time * 1000.0)).UtcDateTime;
             var utc = dt.ToString("HHmmss.fff");
 
-            var gga = string.Format("GPGGA,{0},{1:0.000000},{2},{3:0.000000},{4},{5},{6},{7},{8:0.000000},M,{9:0.000000},M,,",
+            var gga = string.Format("GPGGA,{0},{1},{2},{3},{4},{5},{6},{7},{8},M,{9},M,,",
                 utc,
-                lat, latitudeS,
-                lon, longitudeS,
+                lat.ToString("0.000000", CultureInfo.InvariantCulture), latitudeS,
+                lon.ToString("0.000000", CultureInfo.InvariantCulture), longitudeS,
                 1, // GPX fix
                 10, // sattelites tracked
                 Accuracy,
-                message.Altitude,
-                Height, CultureInfo.InvariantCulture);
+                message.Altitude.ToString("0.000000", CultureInfo.InvariantCulture),
+                Height.ToString("0.000000", CultureInfo.InvariantCulture));
 
             var angles = message.Orientation.eulerAngles;
             float roll = -angles.z;
             float pitch = -angles.x;
             float yaw = angles.y;
 
-            var qq = string.Format("QQ02C,INSATT,V,{0},{1:0.000},{2:0.000},{3:0.000},",
+            var qq = string.Format("QQ02C,INSATT,V,{0},{1},{2},{3},",
                 utc,
-                roll,
-                pitch,
-                yaw, CultureInfo.InvariantCulture);
+                roll.ToString("0.000", CultureInfo.InvariantCulture),
+                pitch.ToString("0.000", CultureInfo.InvariantCulture),
+                yaw.ToString("0.000", CultureInfo.InvariantCulture));
 
             // http://www.plaisance-pratique.com/IMG/pdf/NMEA0183-2.pdf
             // 5.2.3 Checksum Field
