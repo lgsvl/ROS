@@ -323,6 +323,92 @@ namespace Simulator.Bridge.Ros
             return obstacles;
         }
 
+        public static Lgsvl.LaneLineArray ConvertFrom(LaneLinesData data)
+        {
+            var result = new Lgsvl.LaneLineArray()
+            {
+                header = new Ros.Header()
+                {
+                    seq = data.Sequence,
+                    stamp = Conversions.ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                camera_laneline = new List<Lgsvl.LaneLine>(),
+            };
+
+            foreach (var lineData in data.lineData)
+            {
+                var line = new Lgsvl.LaneLine()
+                {
+                    curve_camera_coord = Convert(lineData.CurveCameraCoord)
+                };
+
+                // Note: Don't cast one enum value to another in case Apollo changes their underlying values
+                switch (lineData.PositionType)
+                {
+                    case LaneLinePositionType.BollardLeft:
+                        line.pos_type = Lgsvl.LaneLinePositionType.BollardLeft;
+                        break;
+                    case LaneLinePositionType.FourthLeft:
+                        line.pos_type = Lgsvl.LaneLinePositionType.FourthLeft;
+                        break;
+                    case LaneLinePositionType.ThirdLeft:
+                        line.pos_type = Lgsvl.LaneLinePositionType.ThirdLeft;
+                        break;
+                    case LaneLinePositionType.AdjacentLeft:
+                        line.pos_type = Lgsvl.LaneLinePositionType.AdjacentLeft;
+                        break;
+                    case LaneLinePositionType.EgoLeft:
+                        line.pos_type = Lgsvl.LaneLinePositionType.EgoLeft;
+                        break;
+                    case LaneLinePositionType.EgoRight:
+                        line.pos_type = Lgsvl.LaneLinePositionType.EgoRight;
+                        break;
+                    case LaneLinePositionType.AdjacentRight:
+                        line.pos_type = Lgsvl.LaneLinePositionType.AdjacentRight;
+                        break;
+                    case LaneLinePositionType.ThirdRight:
+                        line.pos_type = Lgsvl.LaneLinePositionType.ThirdRight;
+                        break;
+                    case LaneLinePositionType.FourthRight:
+                        line.pos_type = Lgsvl.LaneLinePositionType.FourthRight;
+                        break;
+                    case LaneLinePositionType.BollardRight:
+                        line.pos_type = Lgsvl.LaneLinePositionType.BollardRight;
+                        break;
+                    case LaneLinePositionType.Other:
+                        line.pos_type = Lgsvl.LaneLinePositionType.Other;
+                        break;
+                    case LaneLinePositionType.Unknown:
+                        line.pos_type = Lgsvl.LaneLinePositionType.Unknown;
+                        break;
+                }
+
+                // Note: Don't cast one enum value to another in case Apollo changes their underlying values
+                switch (lineData.Type)
+                {
+                    case LaneLineType.WhiteDashed:
+                        line.type = Lgsvl.LaneLineType.WhiteDashed;
+                        break;
+                    case LaneLineType.WhiteSolid:
+                        line.type = Lgsvl.LaneLineType.WhiteSolid;
+                        break;
+                    case LaneLineType.YellowDashed:
+                        line.type = Lgsvl.LaneLineType.YellowDashed;
+                        break;
+                    case LaneLineType.YellowSolid:
+                        line.type = Lgsvl.LaneLineType.YellowSolid;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
+                result.camera_laneline.Add(line);
+            }
+
+            return result;
+        }
+
         public static Lgsvl.SignalArray ConvertFrom(SignalDataArray data)
         {
             return new Lgsvl.SignalArray()
@@ -993,6 +1079,19 @@ namespace Simulator.Bridge.Ros
         static UnityEngine.Quaternion Convert(Ros.Quaternion q)
         {
             return new UnityEngine.Quaternion((float)q.x, (float)q.y, (float)q.z, (float)q.w);
+        }
+
+        static Lgsvl.LaneLineCubicCurve Convert(LaneLineCubicCurve c)
+        {
+            return new Lgsvl.LaneLineCubicCurve()
+            {
+                a = c.C0,
+                b = c.C1,
+                c = c.C2,
+                d = c.C3,
+                longitude_max = c.MaxX,
+                longitude_min = c.MinX
+            };
         }
 
         static UnityEngine.Quaternion ConvertToRfu(UnityEngine.Quaternion q)

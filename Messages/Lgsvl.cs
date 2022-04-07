@@ -51,6 +51,30 @@ namespace Simulator.Bridge.Ros.Lgsvl
         VEHICLE_MODE_EMERGENCY_MODE = 4,
     }
 
+    public enum LaneLineType: byte
+    {
+        WhiteDashed = 0,
+        WhiteSolid = 1,
+        YellowDashed = 2,
+        YellowSolid = 3,
+    }
+
+    public enum LaneLinePositionType: sbyte
+    {
+        BollardLeft = -5,
+        FourthLeft = -4,
+        ThirdLeft = -3,
+        AdjacentLeft = -2,
+        EgoLeft = -1,
+        EgoRight = 1,
+        AdjacentRight = 2,
+        ThirdRight = 3,
+        FourthRight = 4,
+        BollardRight = 5,
+        Other = 6,
+        Unknown = 7,
+    }
+
     public enum ObjectState
     {
         STATE_MOVING = 0,
@@ -124,6 +148,33 @@ namespace Simulator.Bridge.Ros.Lgsvl
     {
         public Ros.Header header;
         public List<Detection3D> detections;
+    }
+
+    [MessageType("lgsvl_msgs/LaneLineCubicCurve")]
+    public class LaneLineCubicCurve
+    {
+        public float longitude_min;
+        public float longitude_max;
+        public float a;
+        public float b;
+        public float c;
+        public float d;
+    }
+
+    [MessageType("lgsvl_msgs/LaneLine")]
+    public class LaneLine
+    {
+        public Ros.Header header;
+        public LaneLineType type;
+        public LaneLinePositionType pos_type;
+        public LaneLineCubicCurve curve_camera_coord;
+    }
+    
+    [MessageType("lgsvl_msgs/LaneLineArray")]
+    public class LaneLineArray
+    {
+        public Ros.Header header;
+        public List<LaneLine> camera_laneline;
     }
 
     [MessageType("lgsvl_msgs/Signal")]
